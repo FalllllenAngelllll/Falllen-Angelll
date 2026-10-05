@@ -1,15 +1,22 @@
-# ساخت APK دیده‌بان بورس
-
-نیازها: Node.js 18+، Android Studio، Python 3
-
-1. سرور (روی کامپیوتر یا VPS):
-   cd server && python3 server.py
-   (آدرس IP سرور را در www/index.html، متغیر API، بگذارید)
-2. ساخت اپ:
-   npm install
-   npx cap add android
-   npx cap sync android
-   npx cap open android
-3. در Android Studio: Build > Build APK(s)  (برای انتشار: Generate Signed Bundle/APK)
-
-بعد از هر تغییر در www/index.html دوباره: npx cap sync android
+name: Build APK
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - run: npm install
+      - run: npx cap add android
+      - run: npx cap sync android
+      - run: chmod +x android/gradlew && cd android && ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bourse-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
