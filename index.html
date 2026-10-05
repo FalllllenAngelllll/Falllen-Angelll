@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>دیده‌بان بورس</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--card:#161d27;--line:#243040;--tx:#e8edf3;--mu:#8696a8;--up:#2fd48a;--dn:#ff6b6b;--ac:#f0b84a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:400 14px/1.7 Vazirmatn,Tahoma,sans-serif}
+header{padding:14px 14px 8px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5}
+h1{font-size:19px;font-weight:800;margin:0 0 8px}
+.note{font-size:11.5px;color:var(--ac);background:#2a2314;border-radius:8px;padding:6px 10px;margin-bottom:8px}
+input{width:100%;background:var(--card);border:1px solid var(--line);color:var(--tx);border-radius:10px;padding:10px 12px;font:inherit}
+input:focus,button:focus-visible{outline:2px solid var(--ac)}
+#res{background:var(--card);border-radius:10px;margin-top:4px;max-height:200px;overflow:auto}
+#res div{padding:8px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;cursor:pointer}
+section{padding:6px 0}
+h2{font-size:14px;font-weight:600;margin:8px 14px 6px;color:var(--mu)}
+.strip{display:flex;gap:8px;overflow-x:auto;padding:0 14px 6px;scrollbar-width:none}
+.c{flex:0 0 118px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;cursor:pointer}
+.c b{display:block;font-size:14px}.c small{color:var(--mu);font-size:11px}
+.up{color:var(--up)}.dn{color:var(--dn)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:0 14px 8px;scrollbar-width:none}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:none;color:var(--mu);border-radius:20px;padding:3px 12px;font:inherit;cursor:pointer}
+.chip.on{background:var(--ac);color:#1a1405;border-color:var(--ac);font-weight:600}
+.row{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:10px 14px;border-top:1px solid var(--line);cursor:pointer}
+.row .x{background:none;border:0;color:var(--mu);font-size:18px;cursor:pointer}
+.badge{font-size:11px;padding:1px 8px;border-radius:10px;background:#1f2a38;color:var(--mu)}
+.badge.g{background:#12392b;color:var(--up)}
+#det{position:fixed;inset:0;background:var(--bg);z-index:9;overflow:auto;padding:14px;padding-top:calc(14px + env(safe-area-inset-top,0px));display:none}
+#det .k{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+#det .k div{background:var(--card);border-radius:10px;padding:8px 10px}
+#det .k small{display:block;color:var(--mu);font-size:11px}
+.back{background:var(--card);border:1px solid var(--line);color:var(--tx);border-radius:10px;padding:6px 14px;font:inherit}
+.warn{font-size:11.5px;color:var(--mu);margin:10px 0}
+</style></head><body>
+<header><h1>دیده‌بان بورس</h1>
+<div class="note">سرور داده در دسترس نیست؛ داده نمونه نمایش داده می‌شود.</div>
+<input id="q" placeholder="جستجوی نماد (مثلاً فولاد)..." autocomplete="off"><div id="res"></div></header>
+<main>
+<section><h2>مثبت‌ترین‌های امروز</h2><div class="strip" id="s1"></div></section>
+<section><h2>منفی‌ترین‌های امروز</h2><div class="strip" id="s2"></div></section>
+<section><h2>کف‌خورده‌های مستعد برگشت</h2><div class="strip" id="s3"></div></section>
+<section><h2>زمان خرید (سیگنال فعال)</h2><div class="strip" id="s4"></div></section>
+<section><h2>نقطه ورود سهم‌های دیده‌بان من</h2><div class="strip" id="s5"></div></section>
+<section><h2>پیشنهاد بر پایه قدرت خرید حقیقی/حقوقی</h2><div class="strip" id="s6"></div></section>
+<section><h2>دیده‌بان</h2><div class="chips" id="chips"></div><div id="wl"></div></section>
+</main>
+<div id="det"></div>
+<script>
+const N=['فولاد','شپنا','خودرو','وبملت','فملی','شستا','کگل','وتجارت','خساپا','اخابر','شبندر','پترول','فارس','حفارس','کچاد','ومعادن','وبصادر','تاپیکو','دی','شتران','خگستر','فپنتا','کروی','ذوب'];
+let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+const fa=(n,d=0)=>Number(n).toLocaleString('fa-IR',{maximumFractionDigits:d,minimumFractionDigits:d});
+const S=N.map((n,i)=>{let p=1500+rnd()*9000,c=[],h=[],l=[];const dr=(rnd()-.5)*.012;
+ for(let k=0;k<120;k++){p*=1+dr*(k>80?-1:1)+(rnd()-.5)*.045;c.push(p);h.push(p*(1+rnd()*.015));l.push(p*(1-rnd()*.015))}
+ return{n,c,h,l,hb:.5+rnd()*3,lb:.2+rnd()*2.5,base:c[c.length-2]}});
+const sma=(a,n)=>a.map((_,i)=>i<n-1?null:a.slice(i-n+1,i+1).reduce((x,y)=>x+y)/n);
+function stoch(s,n=14){const k=s.c.map((v,i)=>{if(i<n-1)return null;const hh=Math.max(...s.h.slice(i-n+1,i+1)),ll=Math.min(...s.l.slice(i-n+1,i+1));return 100*(v-ll)/(hh-ll)});return[k,sma(k.map(x=>x??0),3)]}
+function rsi(c,n=14){const r=[];for(let i=0;i<c.length;i++){if(i<n){r.push(null);continue}let g=0,d=0;for(let j=i-n+1;j<=i;j++){const x=c[j]-c[j-1];x>0?g+=x:d-=x}r.push(d==0?100:100-100/(1+g/d))}return r}
+function stochRsi(c,n=14){const r=rsi(c,n);return r.map((v,i)=>{if(i<2*n)return null;const w=r.slice(i-n+1,i+1),a=Math.min(...w),b=Math.max(...w);return b==a?50:100*(v-a)/(b-a)})}
+function ichi(s){const m=(a,i,n)=>{const w=a.slice(i-n+1,i+1);return(Math.max(...w)+Math.min(...s.l.slice(i-n+1,i+1)))/2};
+ const i=s.c.length-1,t=(Math.max(...s.h.slice(i-8,i+1))+Math.min(...s.l.slice(i-8,i+1)))/2,k=(Math.max(...s.h.slice(i-25,i+1))+Math.min(...s.l.slice(i-25,i+1)))/2;
+ const j=i-26,ta=(Math.max(...s.h.slice(j-8,j+1))+Math.min(...s.l.slice(j-8,j+1)))/2,ka=(Math.max(...s.h.slice(j-25,j+1))+Math.min(...s.l.slice(j-25,j+1)))/2;
+ const sa=(ta+ka)/2,sb=(Math.max(...s.h.slice(j-51>=0?j-51:0,j+1))+Math.min(...s.l.slice(j-51>=0?j-51:0,j+1)))/2;
+ return{t,k,top:Math.max(sa,sb),bot:Math.min(sa,sb)}}
+function calc(s){const p=s.c.at(-1),[K,D]=stoch(s),sr=stochRsi(s.c),I=ichi(s);
+ s.p=p;s.pct=(p/s.base-1)*100;s.K=K.at(-1);s.D=D.at(-1);s.sr=sr.at(-1);s.I=I;
+ let sc=0;if(p>I.top)sc++;if(I.t>I.k)sc++;if(s.K<40&&s.K>s.D)sc++;if(s.sr<30&&sr.at(-1)>sr.at(-2))sc++;
+ s.sc=sc;s.entry=Math.max(Math.min(p,I.k),Math.min(...s.l.slice(-10)));s.hist=K}
+S.forEach(calc);
+const wl={'همه':['فولاد','شپنا','خودرو','وبملت'],'بلندمدت':['فملی','شستا']};let cat='همه';
+const $=id=>document.getElementById(id),by=n=>S.find(x=>x.n==n);
+const sig=s=>s.sc>=3?['خرید',1]:s.sc==2?['نگه‌دار',0]:['صبر',0];
+const card=(s,sub)=>`<div class="c" onclick="det('${s.n}')"><b>${s.n}</b><span class="${s.pct>=0?'up':'dn'}">${fa(s.pct,2)}٪</span><br><small>${sub??fa(s.p)}</small></div>`;
+function strips(){const all=[...new Set(Object.values(wl).flat())].map(by);
+ const f=(id,a,sub)=>$(id).innerHTML=a.slice(0,8).map(s=>card(s,sub&&sub(s))).join('')||'<small style="color:var(--mu)">موردی نیست</small>';
+ f('s1',[...S].sort((a,b)=>b.pct-a.pct));f('s2',[...S].sort((a,b)=>a.pct-b.pct));
+ f('s3',S.filter(s=>s.pct<0&&s.sr<35).sort((a,b)=>a.sr-b.sr),s=>'استوکاستیک‌آراس‌آی '+fa(s.sr));
+ f('s4',S.filter(s=>s.sc>=3).sort((a,b)=>b.sc-a.sc),s=>'امتیاز '+fa(s.sc)+' از ۴');
+ f('s5',all,s=>'ورود ≈ '+fa(s.entry));
+ f('s6',S.filter(s=>s.hb>1.4&&s.lb<1.6).sort((a,b)=>b.hb-a.hb),s=>'حقیقی '+fa(s.hb,1)+'×');}
+function list(){$('chips').innerHTML=Object.keys(wl).map(c=>`<button class="chip ${c==cat?'on':''}" onclick="cat='${c}';draw()">${c}</button>`).join('')+'<button class="chip" onclick="nc()">+ دسته</button>';
+ $('wl').innerHTML=wl[cat].map(n=>{const s=by(n),[t,g]=sig(s);return`<div class="row" onclick="det('${n}')"><div><b>${n}</b> <span class="badge ${g?'g':''}">${t}</span></div><div class="${s.pct>=0?'up':'dn'}" style="text-align:left"><b>${fa(s.p)}</b><br><small>${s.pct>=0?'+':''}${fa(s.pct,2)}٪</small></div><button class="x" aria-label="حذف" onclick="event.stopPropagation();rm('${n}')">×</button></div>`}).join('')||'<h2>با جستجو نماد اضافه کنید.</h2>'}
+function draw(){strips();list()}
+function nc(){const n=prompt('نام دسته:');if(n&&!wl[n]){wl[n]=[];cat=n;draw()}}
+function rm(n){wl[cat]=wl[cat].filter(x=>x!=n);draw()}
+$('q').oninput=e=>{const v=e.target.value.trim();$('res').innerHTML=v?N.filter(n=>n.includes(v)).map(n=>`<div onclick="add('${n}')"><span>${n}</span><span style="color:var(--ac)">افزودن به ${cat}</span></div>`).join(''):''};
+function add(n){if(!wl[cat].includes(n))wl[cat].push(n);$('q').value='';$('res').innerHTML='';draw()}
+function det(n){const s=by(n),c=s.c.slice(-60),mn=Math.min(...c),mx=Math.max(...c),pts=c.map((v,i)=>`${i*5},${100-(v-mn)/(mx-mn)*95}`).join(' ');
+ const pos=s.p>s.I.top?'بالای ابر':s.p<s.I.bot?'زیر ابر':'داخل ابر';
+ $('det').style.display='block';$('det').innerHTML=`<button class="back" onclick="this.parentNode.style.display='none'">بازگشت</button><h1 style="margin-top:12px">${n}</h1><b style="font-size:24px">${fa(s.p)}</b> <span class="${s.pct>=0?'up':'dn'}">${fa(s.pct,2)}٪</span>
+ <svg viewBox="0 0 300 100" style="width:100%;height:120px;margin-top:8px"><polyline points="${pts}" fill="none" stroke="${s.pct>=0?'#2fd48a':'#ff6b6b'}" stroke-width="2"/></svg>
+ <div class="k"><div><small>ایچیموکو</small>${pos}؛ تنکان ${s.I.t>s.I.k?'بالای':'زیر'} کیجون</div><div><small>استوکاستیک K / D</small>${fa(s.K)} / ${fa(s.D)}</div><div><small>استوکاستیک‌آراس‌آی</small>${fa(s.sr)}</div><div><small>نقطه ورود تقریبی</small>${fa(s.entry)}</div><div><small>قدرت خرید حقیقی</small>${fa(s.hb,1)}×</div><div><small>امتیاز سیگنال</small>${fa(s.sc)} از ۴</div></div>
+ <div class="warn">امواج الیوت به‌صورت خودکار قابل اتکا نیست و نیازمند شمارش دستی است. این صفحه توصیه مالی نیست.</div>`}
+const API='http://192.168.1.10:8000'; // آدرس سرور خودتان
+let isLive=false;
+async function live(){try{const r=await fetch(API+'/api/market');const d=await r.json();
+ S.length=0;N.length=0;d.forEach(x=>{S.push(x);N.push(x.n)});S.forEach(calc);
+ for(const k in wl)wl[k]=wl[k].filter(n=>by(n));isLive=true;
+ document.querySelector('.note').style.display='none';draw()}catch(e){isLive=false;document.querySelector('.note').style.display='block'}}
+setInterval(()=>{if(isLive||S.length==0){live()}else{S.forEach(s=>{s.c[s.c.length-1]*=1+(rnd()-.5)*.004;calc(s)});draw();live()}},8000);
+draw();live();
+</script></body></html>

@@ -1,0 +1,5 @@
+{"appId":"ir.bourse.watch","appName":"Bourse Watch","webDir":"www",
+"backgroundColor":"#0d1117",
+"server":{"androidScheme":"http","cleartext":true},
+"android":{"allowMixedContent":true},
+"plugins":{"CapacitorHttp":{"enabled":true}}}
